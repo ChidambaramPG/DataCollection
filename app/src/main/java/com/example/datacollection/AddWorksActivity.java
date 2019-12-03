@@ -7,6 +7,9 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 
+import com.example.datacollection.ui.work.ImagesAdapter;
+import com.example.datacollection.ui.work.ProjImage;
+import com.example.datacollection.ui.work.ProjectsAdapter;
 import com.example.datacollection.ui.work.Work;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -28,6 +31,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.transition.Slide;
 import android.view.View;
@@ -52,9 +57,10 @@ public class AddWorksActivity extends AppCompatActivity {
 
     FirebaseFirestore dbRef = FirebaseFirestore.getInstance();
     FirebaseStorage storage = FirebaseStorage.getInstance();
-
+    final StorageReference stRef = storage.getReference();
     ArrayList<Image> images = new ArrayList<>();
     LinearLayout imgsLyt;
+    ImagesAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,15 +132,15 @@ public class AddWorksActivity extends AppCompatActivity {
 
                     tempWork.setUid(uid);
 
-                    final StorageReference stRef = storage.getReference();
+
 
                     dbRef.collection("Projects").add(tempWork).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
                         @Override
                         public void onComplete(@NonNull Task<DocumentReference> task) {
                             if(task.isSuccessful()){
                                 Toast.makeText(getApplicationContext(),"Project Successfully Added",Toast.LENGTH_LONG).show();
-                                if(images.size() > 0){
-                                    for(int i=0;i<images.size();i++){
+                                if(adapter.getImgs().size() > 0){
+                                    for(int i=0;i<adapter.getImgs().size();i++){
                                         Uri file = Uri.fromFile(new File(images.get(i).getPath()));
                                         final int finalI = i;
                                         stRef.child("ProjectImages").child(task.getResult().getId()+"/"+file.getLastPathSegment()).putFile(file).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
@@ -153,6 +159,8 @@ public class AddWorksActivity extends AppCompatActivity {
                                             }
                                         });
                                     }
+                                }else{
+                                    Toast.makeText(AddWorksActivity.this, "No images selected", Toast.LENGTH_SHORT).show();
                                 }
 
                             }else{
@@ -198,6 +206,13 @@ public class AddWorksActivity extends AppCompatActivity {
             }
         });
 
+        RecyclerView imagesRec = findViewById(R.id.imagesRecycler);
+        imagesRec.setLayoutManager(new LinearLayoutManager(getApplicationContext(),LinearLayoutManager.HORIZONTAL,true));
+        adapter = new ImagesAdapter(this);
+        imagesRec.setAdapter(adapter);
+
+
+
     }
 
     @Override
@@ -206,14 +221,20 @@ public class AddWorksActivity extends AppCompatActivity {
             images = data.getParcelableArrayListExtra(Config.EXTRA_IMAGES);
             // do your logic here...
             System.out.println("Images selected");
+            ArrayList<ProjImage> imgsList = new ArrayList<>();
             for(int i=0;i<images.size();i++){
                 System.out.println(images.get(i));
-                ImageView imgView = new ImageView(this);
-                imgView.setId(i);
+//                ImageView imgView = new ImageView(this);
+//                imgView.setId(i);
                 Bitmap bmImg = BitmapFactory.decodeFile(images.get(i).getPath());
-                imgView.setImageBitmap(bmImg);
-                imgsLyt.addView(imgView);
+//                imgView.setImageBitmap(bmImg);
+//                imgsLyt.addView(imgView);
+                ProjImage img = new ProjImage(bmImg);
+                imgsList.add(img);
+
             }
+            adapter.setImgs(imgsList);
+            adapter.notifyDataSetChanged();
         }
         super.onActivityResult(requestCode, resultCode, data);  // You MUST have this line to be here
         // so ImagePicker can work with fragment mode

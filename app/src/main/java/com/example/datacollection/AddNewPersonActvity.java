@@ -88,11 +88,30 @@ public class AddNewPersonActvity extends AppCompatActivity {
                 final ProgressDialog pd = new ProgressDialog(AddNewPersonActvity.this);
                 pd.setMessage("loading");
 
-                if(!nameStr .isEmpty() &&  !addressStr .isEmpty() &&  !phoneStr .isEmpty() &&  !altPhoneStr .isEmpty() &&  !qualificationStr .isEmpty() &&  !experienceStr .isEmpty() &&  !jobsTypeStr.isEmpty() ){
+                if(!nameStr .isEmpty() &&  !addressStr .isEmpty() &&  !phoneStr .isEmpty() &&  !qualificationStr .isEmpty() &&  !experienceStr .isEmpty() &&  !jobsTypeStr.isEmpty() ){
 
                     if(bitmap == null){
+                        pd.show();
 
-                        Toast.makeText(AddNewPersonActvity.this, "select user image also before uploading data", Toast.LENGTH_SHORT).show();
+                        Person person = new Person(nameStr,addressStr,phoneStr,altPhoneStr,qualificationStr,experienceStr,jobsTypeStr);
+
+                        db.collection("People").add(person).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                            @Override
+                            public void onSuccess(final DocumentReference documentReference) {
+//                                Toast.makeText(AddNewPersonActvity.this,"Person Added Successfully. Uploading image..",Toast.LENGTH_SHORT).show();
+                                System.out.println(documentReference.getId());
+                                pd.dismiss();
+                                finish();
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                pd.dismiss();
+                                Toast.makeText(AddNewPersonActvity.this,"Person Details Failed To Add",Toast.LENGTH_LONG).show();
+                            }
+                        });
+
+//                        Toast.makeText(AddNewPersonActvity.this, "select user image also before uploading data", Toast.LENGTH_SHORT).show();
 
                     }else{
                         pd.show();

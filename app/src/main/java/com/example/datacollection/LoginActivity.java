@@ -61,7 +61,7 @@ public class LoginActivity extends AppCompatActivity {
                             startActivity(loginIntent);
 
                         }else{
-                            Toast.makeText(LoginActivity.this,"Credentials are incorect",Toast.LENGTH_LONG);
+                            Toast.makeText(LoginActivity.this,task.getException().toString(),Toast.LENGTH_LONG).show();
                         }
                     }
                 });
